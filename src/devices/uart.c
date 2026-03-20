@@ -17,7 +17,7 @@ device_t uart_device = {
     .name = "UART",
 
     .start = 0x10000000,
-    .end   = 0x10000003,
+    .end   = 0xffffffff,
 
     .read32 = uart_read,
     .write32 = uart_write

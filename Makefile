@@ -6,6 +6,7 @@ SRC = src
 
 SRCS = \
 $(SRC)/main.c \
+$(SRC)/debugger.c \
 $(SRC)/cpu/cpu.c \
 $(SRC)/cpu/decode.c \
 $(SRC)/cpu/memory.c \

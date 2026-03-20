@@ -6,11 +6,18 @@
 #include "bus.h"
 #include "ram.h"
 #include "uart.h"
+#include "debugger.h"
 
 extern device_t ram_device;
 extern device_t uart_device;
 
 CPU cpu;
+
+void soc_init()
+{
+    bus_add_device(&ram_device);
+    bus_add_device(&uart_device);
+}
 
 void load_program(const char *path)
 {
@@ -33,15 +40,19 @@ void load_program(const char *path)
 
 int main()
 {
+    CPU cpu = {0};
+    debugger_t dbg = {0};
+    
+    soc_init();
+
     memset(&cpu, 0, sizeof(cpu));
     cpu.pc = 0;
     cpu.regs[2] = RAM_SIZE;
-    bus_add_device(&ram_device);
-    bus_add_device(&uart_device);
     
     load_program("program.bin");
 
-    cpu_run(&cpu);
-
+    // cpu_run(&cpu);
+    debugger_run(&dbg, &cpu);
     return 0;
 }
+
