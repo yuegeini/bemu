@@ -7,6 +7,7 @@
 #include "ram.h"
 #include "uart.h"
 #include "debugger.h"
+#include "uart_model.h"
 
 extern device_t ram_device;
 extern device_t uart_device;
@@ -44,6 +45,7 @@ int main()
     debugger_t dbg = {0};
     
     soc_init();
+    uart_init();
 
     memset(&cpu, 0, sizeof(cpu));
     cpu.pc = 0;
