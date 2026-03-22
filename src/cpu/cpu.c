@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "bus.h"
 #include "util.h"
+#include "sim.h"
 
 extern void execute(CPU *cpu, uint32_t inst);
 
@@ -188,23 +189,18 @@ void disasm(uint32_t inst)
 }
 void cpu_run(CPU *cpu)
 {
-    while (1) {
+    while (1)
+    {
+        int cycles = cpu_step(cpu);
 
+        if (cycles <= 0)
+            cycles = 1;
 
-        uint32_t inst = load32(cpu->pc);
-        
-        // printf("PC=%08x INST=%08x\n", cpu->pc, inst);
-        // disasm(inst);
-
-        execute(cpu, inst);
-
-        // dump_regs(cpu);
-
-        cpu->regs[0] = 0;
+        sim_run_cycles(cycles * 64);
     }
 }
 
-void cpu_step(CPU *cpu)
+int cpu_step(CPU *cpu)
 {
     uint32_t inst = load32(cpu->pc);
 
@@ -214,4 +210,6 @@ void cpu_step(CPU *cpu)
     execute(cpu, inst);
 
     cpu->regs[0] = 0;
+
+    return 1;
 }

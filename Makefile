@@ -15,10 +15,13 @@ VERILATOR_LIB = \
 
 SRCS = \
 $(SRC)/main.c \
+$(SRC)/sim/sim.c \
+$(SRC)/sim/scheduler.c \
 $(SRC)/cosim/transaction.c \
 $(SRC)/cosim/uart_ref.c \
 $(SRC)/cosim/uart_rtl.cpp \
 $(SRC)/rtl/uart_model.cpp \
+$(SRC)/rtl/uart_monitor.c \
 $(SRC)/common/debugger.c \
 $(SRC)/common/trace.c \
 $(SRC)/cpu/cpu.c \

@@ -12,6 +12,6 @@ typedef struct {
 } CPU;
 
 void cpu_run(CPU *cpu);
-void cpu_step(CPU *cpu);
+int cpu_step(CPU *cpu);
 
 #endif

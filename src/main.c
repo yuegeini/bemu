@@ -8,6 +8,8 @@
 #include "uart.h"
 #include "debugger.h"
 #include "uart_model.h"
+#include "sim.h"
+#include "scheduler.h"
 
 extern device_t ram_device;
 extern device_t uart_device;
@@ -45,14 +47,16 @@ int main()
     debugger_t dbg = {0};
     
     soc_init();
+
     uart_init();
+    uart_register_clock();
 
     memset(&cpu, 0, sizeof(cpu));
     cpu.pc = 0;
     cpu.regs[2] = RAM_SIZE;
     
     load_program("program.bin");
-
+    
     cpu_run(&cpu);
     // debugger_run(&dbg, &cpu);
     return 0;
