@@ -1,14 +1,12 @@
 #define UART ((volatile char*)0x10000000)
 
-volatile int mem;
-
 int main()
 {
-    mem = 1234;
+    int a = 5;
+    int b = 7;
+    int c = a + b;
 
-    int x = mem;
-
-    if (x == 1234)
+    if (c == 12)
         *UART = 'P';
     else
         *UART = 'F';

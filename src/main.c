@@ -51,8 +51,8 @@ int main()
     
     load_program("program.bin");
 
-    // cpu_run(&cpu);
-    debugger_run(&dbg, &cpu);
+    cpu_run(&cpu);
+    // debugger_run(&dbg, &cpu);
     return 0;
 }
 

@@ -10,8 +10,8 @@ typedef struct device {
     uint32_t start;
     uint32_t end;
 
-    uint32_t (*read32)(uint32_t addr);
-    void (*write32)(uint32_t addr, uint32_t value);
+    uint32_t (*read)(uint32_t addr, int size);
+    void (*write)(uint32_t addr, int size, uint32_t value);
 
 } device_t;
 
