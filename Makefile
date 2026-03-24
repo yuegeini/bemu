@@ -19,6 +19,7 @@ $(SRC)/sim/sim.c \
 $(SRC)/sim/scheduler.c \
 $(SRC)/cosim/transaction.c \
 $(SRC)/cosim/uart_ref.c \
+$(SRC)/cosim/uart_rx.cpp \
 $(SRC)/cosim/uart_rtl.cpp \
 $(SRC)/rtl/uart_model.cpp \
 $(SRC)/rtl/uart_monitor.c \
@@ -43,7 +44,7 @@ run: program $(TARGET)
 	./emu
 
 program:
-	riscv64-unknown-elf-gcc test/program.c -nostdlib -march=rv32i -mabi=ilp32 -Ttext=0x0 -o program.elf
+	riscv64-unknown-elf-gcc start.S test/program.c  -nostdlib -march=rv32i -mabi=ilp32 -Ttext=0x0 -o program.elf
 	riscv64-unknown-elf-objcopy -O binary program.elf program.bin
 
 $(TARGET): $(OBJS)

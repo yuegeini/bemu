@@ -3,10 +3,17 @@
 #include "bus.h"
 #include "util.h"
 #include "sim.h"
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 
+static struct termios orig_termios;
 extern void execute(CPU *cpu, uint32_t inst);
 
 extern int32_t sign_extend(uint32_t val, int bits);
+
+extern void uart_rx_push(uint8_t c);
+extern void uart_ref_push_rx(uint8_t c);
 
 void dump_regs(CPU *cpu)
 {
@@ -187,18 +194,57 @@ void disasm(uint32_t inst)
         }
     }
 }
+
+
+
+void stdin_init()
+{
+    struct termios t;
+
+    tcgetattr(0, &orig_termios);
+    t = orig_termios;
+
+    t.c_lflag &= ~(ICANON); // raw mode
+    tcsetattr(0, TCSANOW, &t);
+
+    fcntl(0, F_SETFL, O_NONBLOCK);
+}
+
+void poll_stdin()
+{
+    char c;
+
+    if (read(0, &c, 1) == 1)
+    {
+        uart_rx_push((uint8_t)c);
+        uart_ref_push_rx((uint8_t)c);
+        printf("[HOST RX] %c\n", c);
+    }
+}
+
 void cpu_run(CPU *cpu)
 {
+    struct termios orig;
+
+    tcgetattr(STDIN_FILENO, &orig);
+    stdin_init();
+
     while (1)
     {
+        poll_stdin();   
+
         int cycles = cpu_step(cpu);
 
         if (cycles <= 0)
             cycles = 1;
 
-        sim_run_cycles(cycles * 64);
+        sim_run_cycles(cycles);
+        // if (!uart_rx_ready())
+            usleep(100000);
     }
+    tcsetattr(STDIN_FILENO, TCSANOW, &orig);
 }
+
 
 int cpu_step(CPU *cpu)
 {

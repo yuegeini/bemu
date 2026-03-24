@@ -5,9 +5,12 @@
 extern "C" {
 #endif
 
+extern int uart_bit_cycles;
+extern int uart_in_monitor;
 struct Vuart_top;
 
 void uart_monitor(struct Vuart_top *uart);
+void uart_rx_drive(struct Vuart_top *uart);
 
 void uart_monitor_update_divisor();
 

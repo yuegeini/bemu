@@ -14,6 +14,7 @@
 extern device_t ram_device;
 extern device_t uart_device;
 
+
 CPU cpu;
 
 void soc_init()
@@ -41,6 +42,16 @@ void load_program(const char *path)
     ram_load(buffer, size);
 }
 
+void cpu_reset(CPU *cpu)
+{
+    memset(cpu, 0, sizeof(*cpu));
+
+    cpu->pc = 0x00000000;
+
+    cpu->regs[2] = RAM_SIZE; // sp
+    cpu->regs[3] = 0x00080000; // gp
+}
+
 int main()
 {
     CPU cpu = {0};
@@ -51,10 +62,8 @@ int main()
     uart_init();
     uart_register_clock();
 
-    memset(&cpu, 0, sizeof(cpu));
-    cpu.pc = 0;
-    cpu.regs[2] = RAM_SIZE;
-    
+    cpu_reset(&cpu);
+
     load_program("program.bin");
     
     cpu_run(&cpu);

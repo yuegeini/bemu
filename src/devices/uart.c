@@ -31,7 +31,7 @@ static void uart_write(uint32_t addr, int size, uint32_t value)
     t.size  = size;
     t.write = 1;
 
-    printf("[UART WRITE] off=%x val=%02x\n", offset, value);
+    printf("[UART WRITE] addr=%x val=%02x\n", addr, value);
 
     txn_dispatch(&t);
 }

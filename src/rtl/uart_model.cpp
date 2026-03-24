@@ -10,70 +10,22 @@ static uint8_t rx_byte = 0;
 static int last_tx = 1;
 
 static int counter = 0;
-
+static uint8_t RBR = 0;
+static uint8_t LSR = 0x60; // THR empty + idle
 
 static Vuart_top *uart = nullptr;
 
-#define BIT_TIME 1   // подобрать
-
-void uart_monitor1()
+extern int uart_rx_ready()
 {
-    int tx = uart->stx_pad_o;
+    return (LSR & 0x01) != 0;
+}
 
-    switch(uart_state)
-    {
-        case 0: // WAIT START
-            if(tx == 0)
-            {
-                printf("[RTL UART] WAIT\n");
-                uart_state = 1;
-                counter = BIT_TIME/2;
-                bit_count = 0;
-                rx_byte = 0;
-            }
+void uart_feed_rx(uint8_t c)
+{
+    RBR = c;
+    LSR |= 0x01; // Data Ready
 
-            break;
-
-        case 1: // WAIT HALF BIT
-
-            if(--counter == 0)
-            {
-                printf("[RTL UART] WAIT HALF\n");
-                uart_state = 2;
-                counter = BIT_TIME;
-            }
-
-            break;
-
-        case 2: // READ DATA
-            if(--counter == 0)
-            {
-                printf("[RTL UART] READ\n");
-                rx_byte |= (tx << bit_count);
-                bit_count++;
-
-                counter = BIT_TIME;
-
-                if(bit_count == 8)
-                    uart_state = 3;
-            }
-
-            break;
-
-        case 3: // STOP BIT
-
-            if(--counter == 0)
-            {
-                if(tx == 1)
-                    printf("[RTL] UART RX '%c'\n", rx_byte);
-                else
-                    printf("[RTL] framing error\n");
-
-                uart_state = 0;
-            }
-
-            break;
-    }
+    printf("[UART RX READY] %c\n", c);
 }
 
 static void tick()
@@ -95,9 +47,10 @@ static void tick()
 
 void uart_tick()
 {
+    // uart_rx_drive(uart); 
     tick();          // один такт UART
-    uart_monitor1();  // посмотреть TX линию
-    uart_monitor(uart);
+    if (!uart_in_monitor)
+        uart_monitor(uart);
     // printf("cyc=%d stb=%d ack=%d\n",
     //    uart->wb_cyc_i,
     //    uart->wb_stb_i,
@@ -107,6 +60,15 @@ void uart_tick()
 
 void uart_write_reg(uint32_t addr, uint8_t val)
 {
+    if (addr == 0) // THR (TX)
+    {
+        printf("[UART TX] %c\n", val);
+
+        LSR |= 0x20; // THR empty
+        LSR |= 0x40; // TX empty
+
+        return;
+    }
     uint32_t word = addr;
 
     uart->wb_adr_i = word;
@@ -130,10 +92,23 @@ void uart_write_reg(uint32_t addr, uint8_t val)
 
     uart_tick(); 
     uart_tick();   // завершение
+    
 }
 
 uint8_t uart_read_reg(uint32_t addr)
 {
+        switch (addr)
+    {
+        case 0: // RBR
+        {
+            uint8_t val = RBR;
+            LSR &= ~0x01; // сброс Data Ready
+            return val;
+        }
+
+        case 5: // LSR
+            return LSR;
+    }
     uint32_t word = addr;
 
     uart->wb_adr_i = word;
@@ -206,7 +181,7 @@ void uart_init()
         uart_tick();
 
     uart_write_reg(3, 0x80); // LCR
-    uart_write_reg(0, 0x01); // DLL
+    uart_write_reg(0, 0x02); // DLL
     uart_write_reg(1, 0x00); // DLM
     
     uart_write_reg(3, 0x03); // 8N1

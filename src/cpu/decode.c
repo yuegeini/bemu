@@ -28,8 +28,14 @@ void execute(CPU *cpu, uint32_t inst)
 
         case 0x33: // ADD
         {
-            if (funct3 == 0 && funct7 == 0)
-                cpu->regs[rd] = cpu->regs[rs1] + cpu->regs[rs2];
+            if (funct3 == 0 && funct7 == 0) {
+                uint32_t res = cpu->regs[rs1] + cpu->regs[rs2];
+
+                trace("%08x  add   x%d,x%d,x%d   x%d=%08x\n",
+                    cpu->pc, rd, rs1, rs2, rd, res);
+
+                cpu->regs[rd] = res;
+            }
 
             cpu->pc += 4;
             break;
@@ -53,18 +59,19 @@ void execute(CPU *cpu, uint32_t inst)
             int32_t imm = sign_extend(inst >> 20, 12);
             uint32_t addr = cpu->regs[rs1] + imm;
 
-            switch (funct3) {
+            const char *name = "load";
 
-                case 0: cpu->regs[rd] = (int8_t)load8(addr);   break;   // LB
-                case 1: cpu->regs[rd] = (int16_t)load16(addr); break;   // LH
-                case 2: cpu->regs[rd] = load32(addr);          break;   // LW
-                case 4: cpu->regs[rd] = load8(addr);           break;   // LBU
-                case 5: cpu->regs[rd] = load16(addr);          break;   // LHU
+            switch (funct3) {
+                case 0: cpu->regs[rd] = (int8_t)load8(addr);   name="lb";  break;
+                case 1: cpu->regs[rd] = (int16_t)load16(addr); name="lh";  break;
+                case 2: cpu->regs[rd] = load32(addr);          name="lw";  break;
+                case 4: cpu->regs[rd] = load8(addr);           name="lbu"; break;
+                case 5: cpu->regs[rd] = load16(addr);          name="lhu"; break;
             }
 
-            trace("%08x  lw    x%d,%d(x%d)   x%d=%08x\n",
-                cpu->pc, rd, imm, rs1, rd, cpu->regs[rd]);
-            
+            trace("%08x  %-4s  x%d,%d(x%d)   x%d=%08x\n",
+                cpu->pc, name, rd, imm, rs1, rd, cpu->regs[rd]);
+
             cpu->pc += 4;
             break;
         }
@@ -78,15 +85,16 @@ void execute(CPU *cpu, uint32_t inst)
 
             uint32_t addr = cpu->regs[rs1] + imm;
 
-            switch (funct3) {
+            const char *name = "store";
 
-                case 0: store8(addr, cpu->regs[rs2]);       break;   // SB
-                case 1: store16(addr, cpu->regs[rs2]);      break;   // SH
-                case 2: store32(addr, cpu->regs[rs2]);      break;   // SW
+            switch (funct3) {
+                case 0: store8(addr, cpu->regs[rs2]);  name="sb"; break;
+                case 1: store16(addr, cpu->regs[rs2]); name="sh"; break;
+                case 2: store32(addr, cpu->regs[rs2]); name="sw"; break;
             }
 
-            trace("%08x  sw    x%d,%d(x%d)   mem[%08x]=%08x\n",
-                cpu->pc, rs2, imm, rs1, addr, cpu->regs[rs2]);
+            trace("%08x  %-4s  x%d,%d(x%d)   mem[%08x]=%08x\n",
+                cpu->pc, name, rs2, imm, rs1, addr, cpu->regs[rs2]);
 
             cpu->pc += 4;
             break;
@@ -95,10 +103,12 @@ void execute(CPU *cpu, uint32_t inst)
         {
             uint32_t imm = inst & 0xfffff000;
 
+            trace("%08x  lui   x%d,%08x\n",
+                cpu->pc, rd, imm);
+
             cpu->regs[rd] = imm;
 
             cpu->pc += 4;
-
             break;
         }
         case 0x6F: // JAL
@@ -111,10 +121,12 @@ void execute(CPU *cpu, uint32_t inst)
 
             imm = sign_extend(imm, 21);
 
+            trace("%08x  jal   x%d,%d   ra=%08x\n",
+                cpu->pc, rd, imm, cpu->pc + 4);
+
             cpu->regs[rd] = cpu->pc + 4;
 
             cpu->pc += imm;
-
             break;
         }
         case 0x63: // BRANCH
@@ -129,32 +141,21 @@ void execute(CPU *cpu, uint32_t inst)
             imm = sign_extend(imm, 13);
 
             int take = 0;
+            const char *name = "branch";
 
             switch (funct3)
             {
-                case 0: // BEQ
-                    take = (cpu->regs[rs1] == cpu->regs[rs2]);
-                    break;
-
-                case 1: // BNE
-                    take = (cpu->regs[rs1] != cpu->regs[rs2]);
-                    break;
-
-                case 4: // BLT
-                    take = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]);
-                    break;
-
-                case 5: // BGE
-                    take = ((int32_t)cpu->regs[rs1] >= (int32_t)cpu->regs[rs2]);
-                    break;
-
+                case 0: take = (cpu->regs[rs1] == cpu->regs[rs2]); name="beq"; break;
+                case 1: take = (cpu->regs[rs1] != cpu->regs[rs2]); name="bne"; break;
+                case 4: take = ((int32_t)cpu->regs[rs1] < (int32_t)cpu->regs[rs2]); name="blt"; break;
+                case 5: take = ((int32_t)cpu->regs[rs1] >= (int32_t)cpu->regs[rs2]); name="bge"; break;
                 default:
                     printf("Unknown branch type\n");
                     exit(1);
             }
 
-            trace("%08x  beq   x%d,x%d,%d   %s\n",
-                cpu->pc, rs1, rs2, imm,
+            trace("%08x  %-4s  x%d,x%d,%d   %s\n",
+                cpu->pc, name, rs1, rs2, imm,
                 take ? "taken" : "not taken");
 
             if (take)
@@ -170,6 +171,9 @@ void execute(CPU *cpu, uint32_t inst)
 
             uint32_t target = cpu->regs[rs1] + imm;
 
+            trace("%08x  jalr  x%d,%d(x%d)   target=%08x\n",
+                cpu->pc, rd, imm, rs1, target & ~1);
+
             cpu->regs[rd] = cpu->pc + 4;
 
             cpu->pc = target & ~1;
@@ -179,6 +183,9 @@ void execute(CPU *cpu, uint32_t inst)
         case 0x17: // AUIPC
         {
             uint32_t imm = inst & 0xfffff000;
+
+            trace("%08x  auipc x%d,%08x   x%d=%08x\n",
+                cpu->pc, rd, imm, rd, cpu->pc + imm);
 
             cpu->regs[rd] = cpu->pc + imm;
 
@@ -190,8 +197,13 @@ void execute(CPU *cpu, uint32_t inst)
         {
             uint32_t funct12 = inst >> 20;
 
-            if (funct12 == 1) { // EBREAK
+            if (funct12 == 1) {
+                trace("%08x  ebreak\n", cpu->pc);
                 printf("Program finished (EBREAK)\n");
+                exit(0);
+            } else { // ECALL
+                trace("%08x  ecall\n", cpu->pc);
+                printf("Program finished (ECALL)\n");
                 exit(0);
             }
 

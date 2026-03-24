@@ -76,8 +76,8 @@ void bus_write32(uint32_t addr, uint32_t value)
         printf("BUS WRITE 32 unknown addr %08x\n", addr);
         exit(1);
     }
-    // printf("BUS WRITE 32 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
-    //        addr, value, dev->start, dev->end, dev->name);
+    printf("BUS WRITE 32 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
+           addr, value, dev->start, dev->end, dev->name);
 
     dev->write(addr, 4, value);
     
@@ -91,8 +91,8 @@ void bus_write16(uint32_t addr, uint32_t value)
         printf("BUS WRITE 16 unknown addr %08x\n", addr);
         exit(1);
     }
-    // printf("BUS WRITE 16 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
-    //        addr, value, dev->start, dev->end, dev->name);
+    printf("BUS WRITE 16 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
+           addr, value, dev->start, dev->end, dev->name);
 
     dev->write(addr, 2, value);
     
@@ -106,8 +106,8 @@ void bus_write8(uint32_t addr, uint32_t value)
         printf("BUS WRITE 8 unknown addr %08x\n", addr);
         exit(1);
     }
-    // printf("BUS WRITE 8 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
-    //        addr, value, dev->start, dev->end, dev->name);
+    printf("BUS WRITE 8 addr=%08x value=%08x -> device [%08x-%08x] (%s)\n",
+           addr, value, dev->start, dev->end, dev->name);
 
     dev->write(addr, 1, value);
     
