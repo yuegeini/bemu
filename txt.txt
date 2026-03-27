@@ -1,0 +1,185 @@
+rm -rf build emu
+rm -rf obj_dir
+rm -rf *.bin *.elf
+verilator \
+    --cc rtl/uart_top.v \
+    --top-module uart_top \
+    -Irtl \
+    --no-timing \
+    -Wno-fatal \
+	--build
+make[1]: Entering directory '/home/user/bemu/obj_dir'
+/usr/bin/python3 /usr/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vuart_top.cpp Vuart_top___024root__DepSet_hc6ee783a__0.cpp Vuart_top___024root__DepSet_h647a6929__0.cpp Vuart_top__ConstPool_0.cpp Vuart_top___024root__Slow.cpp Vuart_top___024root__DepSet_hc6ee783a__0__Slow.cpp Vuart_top___024root__DepSet_h647a6929__0__Slow.cpp Vuart_top__Syms.cpp > Vuart_top__ALL.cpp
+g++ -Os  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-overloaded-virtual -Wno-shadow -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable       -c -o Vuart_top__ALL.o Vuart_top__ALL.cpp
+echo "" > libVuart_top.verilator_deplist.tmp
+Archive ar -rcs libVuart_top.a Vuart_top__ALL.o
+g++ -Os  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-overloaded-virtual -Wno-shadow -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable       -c -o verilated.o /usr/share/verilator/include/verilated.cpp
+g++ -Os  -I.  -MMD -I/usr/share/verilator/include -I/usr/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-overloaded-virtual -Wno-shadow -Wno-sign-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable       -c -o verilated_threads.o /usr/share/verilator/include/verilated_threads.cpp
+echo "" > libverilated.verilator_deplist.tmp
+Archive ar -rcs libverilated.a verilated.o verilated_threads.o
+echo "" > Vuart_top__ALL.verilator_deplist.tmp
+Archive ar -rcs Vuart_top__ALL.a Vuart_top__ALL.o
+rm libVuart_top.verilator_deplist.tmp libverilated.verilator_deplist.tmp Vuart_top__ALL.verilator_deplist.tmp
+make[1]: Leaving directory '/home/user/bemu/obj_dir'
+riscv64-unknown-elf-gcc start.S test/program.c  -nostdlib -march=rv32i -mabi=ilp32 -Ttext=0x0 -o program.elf
+riscv64-unknown-elf-objcopy -O binary program.elf program.bin
+mkdir -p build/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/main.c -o build/main.o
+mkdir -p build/sim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/sim/sim.c -o build/sim/sim.o
+mkdir -p build/sim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/sim/scheduler.c -o build/sim/scheduler.o
+mkdir -p build/cosim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cosim/transaction.c -o build/cosim/transaction.o
+mkdir -p build/cosim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cosim/uart_ref.c -o build/cosim/uart_ref.o
+mkdir -p build/cosim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cosim/uart_rx.cpp -o build/cosim/uart_rx.o
+mkdir -p build/cosim/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cosim/uart_rtl.cpp -o build/cosim/uart_rtl.o
+mkdir -p build/rtl/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/rtl/uart_model.cpp -o build/rtl/uart_model.o
+mkdir -p build/rtl/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/rtl/uart_monitor.c -o build/rtl/uart_monitor.o
+mkdir -p build/common/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/common/debugger.c -o build/common/debugger.o
+mkdir -p build/common/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/common/trace.c -o build/common/trace.o
+mkdir -p build/cpu/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cpu/cpu.c -o build/cpu/cpu.o
+mkdir -p build/cpu/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cpu/decode.c -o build/cpu/decode.o
+mkdir -p build/cpu/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/cpu/memory.c -o build/cpu/memory.o
+mkdir -p build/devices/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/devices/bus.c -o build/devices/bus.o
+mkdir -p build/devices/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/devices/ram.c -o build/devices/ram.o
+mkdir -p build/devices/
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 -c src/devices/uart.c -o build/devices/uart.o
+g++ -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2 build/main.o build/sim/sim.o build/sim/scheduler.o build/cosim/transaction.o build/cosim/uart_ref.o build/cosim/uart_rx.o build/cosim/uart_rtl.o build/rtl/uart_model.o build/rtl/uart_monitor.o build/common/debugger.o build/common/trace.o build/cpu/cpu.o build/cpu/decode.o build/cpu/memory.o build/devices/bus.o build/devices/ram.o build/devices/uart.o obj_dir/Vuart_top__ALL.cpp /usr/share/verilator/include/verilated.cpp /usr/share/verilator/include/verilated_threads.cpp -o emu
+./emu
+BUS: add device RAM [00000000-000fffff]
+BUS: add device UART [10000000-10000007]
+(TOP.uart_top) UART INFO: Data bus width is 32. Debug Interface present.
+
+(TOP.uart_top) UART INFO: Doesn't have baudrate output
+
+WB write addr=3 word=3  val=80
+[UART TX] 
+WB write addr=1 word=1  val=00
+WB write addr=3 word=3  val=03
+WB read addr=3 word=3 val=03
+LCR=03
+UART clock registered
+Loaded 436 bytes
+PC=00000000 INST=00100137
+00000000  lui   x2,00100000
+PC=00000004 INST=000801b7
+00000004  lui   x3,00080000
+PC=00000008 INST=124000ef
+00000008  jal   x1,292   ra=0000000c
+PC=0000012c INST=fe010113
+0000012c  addi  x2,x2,-32    x2=000fffe0
+PC=00000130 INST=00112e23
+BUS WRITE 32 addr=000ffffc value=0000000c -> device [00000000-000fffff] (RAM)
+00000130  sw    x1,28(x2)   mem[000ffffc]=0000000c
+PC=00000134 INST=00812c23
+BUS WRITE 32 addr=000ffff8 value=00000000 -> device [00000000-000fffff] (RAM)
+00000134  sw    x8,24(x2)   mem[000ffff8]=00000000
+PC=00000138 INST=02010413
+00000138  addi  x8,x2,32    x8=00100000
+PC=0000013c INST=100007b7
+0000013c  lui   x15,10000000
+PC=00000140 INST=00378793
+00000140  addi  x15,x15,3    x15=10000003
+PC=00000144 INST=f8000713
+00000144  addi  x14,x0,-128    x14=ffffff80
+PC=00000148 INST=00e78023
+BUS WRITE 8 addr=10000003 value=00000080 -> device [10000000-10000007] (UART)
+[UART WRITE] addr=10000003 val=80
+WB write addr=3 word=3  val=80
+[UART] divisor=1 bit_cycles=16
+[CHECK] addr=3 WR ref=80 rtl=80
+00000148  sb    x14,0(x15)   mem[10000003]=ffffff80
+PC=0000014c INST=100007b7
+0000014c  lui   x15,10000000
+PC=00000150 INST=00200713
+00000150  addi  x14,x0,2    x14=00000002
+PC=00000154 INST=00e78023
+BUS WRITE 8 addr=10000000 value=00000002 -> device [10000000-10000007] (UART)
+[UART WRITE] addr=10000000 val=02
+[UART TX] 
+[UART] divisor=2 bit_cycles=32
+[CHECK] addr=0 WR ref=02 rtl=02
+00000154  sb    x14,0(x15)   mem[10000000]=00000002
+PC=00000158 INST=100007b7
+00000158  lui   x15,10000000
+PC=0000015c INST=00178793
+0000015c  addi  x15,x15,1    x15=10000001
+PC=00000160 INST=00078023
+BUS WRITE 8 addr=10000001 value=00000000 -> device [10000000-10000007] (UART)
+[UART WRITE] addr=10000001 val=00
+WB write addr=1 word=1  val=00
+[UART] divisor=2 bit_cycles=32
+[CHECK] addr=1 WR ref=00 rtl=00
+00000160  sb    x0,0(x15)   mem[10000001]=00000000
+PC=00000164 INST=100007b7
+00000164  lui   x15,10000000
+PC=00000168 INST=00378793
+00000168  addi  x15,x15,3    x15=10000003
+PC=0000016c INST=00300713
+0000016c  addi  x14,x0,3    x14=00000003
+PC=00000170 INST=00e78023
+BUS WRITE 8 addr=10000003 value=00000003 -> device [10000000-10000007] (UART)
+[UART WRITE] addr=10000003 val=03
+WB write addr=3 word=3  val=03
+[UART] divisor=2 bit_cycles=32
+[CHECK] addr=3 WR ref=03 rtl=03
+00000170  sb    x14,0(x15)   mem[10000003]=00000003
+PC=00000174 INST=100007b7
+00000174  lui   x15,10000000
+PC=00000178 INST=04100713
+00000178  addi  x14,x0,65    x14=00000041
+PC=0000017c INST=00e78023
+BUS WRITE 8 addr=10000000 value=00000041 -> device [10000000-10000007] (UART)
+[UART WRITE] addr=10000000 val=41
+[REF TX enqueue] 41
+[UART TX] A
+[UART] divisor=2 bit_cycles=32
+[CHECK] addr=0 WR ref=41 rtl=41
+0000017c  sb    x14,0(x15)   mem[10000000]=00000041
+PC=00000180 INST=f79ff0ef
+00000180  jal   x1,-136   ra=00000184
+PC=000000f8 INST=ff010113
+000000f8  addi  x2,x2,-16    x2=000fffd0
+[PUSH RX] B
+[UART RX READY] B
+[HOST RX] B
+PC=000000fc INST=00112623
+BUS WRITE 32 addr=000fffdc value=00000184 -> device [00000000-000fffff] (RAM)
+000000fc  sw    x1,12(x2)   mem[000fffdc]=00000184
+PC=00000100 INST=00812423
+BUS WRITE 32 addr=000fffd8 value=00100000 -> device [00000000-000fffff] (RAM)
+00000100  sw    x8,8(x2)   mem[000fffd8]=00100000
+PC=00000104 INST=01010413
+00000104  addi  x8,x2,16    x8=000fffe0
+PC=00000108 INST=f85ff0ef
+00000108  jal   x1,-124   ra=0000010c
+PC=0000008c INST=ff010113
+0000008c  addi  x2,x2,-16    x2=000fffc0
+PC=00000090 INST=00812623
+BUS WRITE 32 addr=000fffcc value=000fffe0 -> device [00000000-000fffff] (RAM)
+00000090  sw    x8,12(x2)   mem[000fffcc]=000fffe0
+PC=00000094 INST=01010413
+00000094  addi  x8,x2,16    x8=000fffd0
+PC=00000098 INST=00000013
+00000098  addi  x0,x0,0    x0=00000000
+PC=0000009c INST=100007b7
+0000009c  lui   x15,10000000
+PC=000000a0 INST=00578793
+000000a0  addi  x15,x15,5    x15=10000005
+PC=000000a4 INST=0007c783
+[CHECK] addr=5 RD ref=21 rtl=61
+❌ LSR mismatch ref=21 rtl=61
+❌ MISMATCH READ addr=5 ref=21 rtl=61
