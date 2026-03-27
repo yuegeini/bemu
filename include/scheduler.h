@@ -15,7 +15,15 @@ typedef struct clocked_device {
 
 void scheduler_init();
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void scheduler_register(clocked_device_t dev);
+
+#ifdef __cplusplus
+}
+#endif
 
 void scheduler_tick();
 

@@ -1,12 +1,18 @@
-CC = g++
+CC = clang
+CXX = clang++
+
 CFLAGS = -Iinclude -Iobj_dir -I/usr/share/verilator/include -O2
+CXXFLAGS = $(CFLAGS) -std=c++14
+LDFLAGS = -latomic
+
+CLANG_TIDY = clang-tidy
 
 BUILD = build
 SRC = src
 
 VERILATOR = verilator
-UART_RTL = rtl/uart_top.v
 
+UART_RTL = rtl/uart_top.v
 UART_VERILATED = obj_dir/Vuart_top__ALL.cpp
 
 VERILATOR_LIB = \
@@ -22,7 +28,7 @@ $(SRC)/cosim/uart_ref.c \
 $(SRC)/cosim/uart_rx.cpp \
 $(SRC)/cosim/uart_rtl.cpp \
 $(SRC)/rtl/uart_model.cpp \
-$(SRC)/rtl/uart_monitor.c \
+$(SRC)/rtl/uart_monitor.cpp \
 $(SRC)/common/debugger.c \
 $(SRC)/common/trace.c \
 $(SRC)/cpu/cpu.c \
@@ -43,12 +49,18 @@ all: clean verilated program $(TARGET)
 run: program $(TARGET)
 	./emu
 
+lint:
+	$(CLANG_TIDY) $(SRCS) -- $(CFLAGS)
+
+cppcheck:
+	cppcheck --enable=all --inconclusive --std=c++17 $(SRC)
+
 program:
-	riscv64-unknown-elf-gcc start.S test/program.c  -nostdlib -march=rv32i -mabi=ilp32 -Ttext=0x0 -o program.elf
+	riscv64-unknown-elf-gcc start.S test/program.c -nostdlib -march=rv32i -mabi=ilp32 -Ttext=0x0 -o program.elf
 	riscv64-unknown-elf-objcopy -O binary program.elf program.bin
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(UART_VERILATED) $(VERILATOR_LIB) -o $@
+	$(CXX) $(CXXFLAGS) $(OBJS) $(UART_VERILATED) $(VERILATOR_LIB) $(LDFLAGS) -o $@
 
 $(BUILD)/%.o: $(SRC)/%.c
 	mkdir -p $(dir $@)
@@ -56,16 +68,16 @@ $(BUILD)/%.o: $(SRC)/%.c
 
 $(BUILD)/%.o: $(SRC)/%.cpp
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 verilated:
 	$(VERILATOR) \
-	    --cc $(UART_RTL) \
-	    --top-module uart_top \
-	    -Irtl \
-	    --no-timing \
-	    -Wno-fatal \
-		--build
+	--cc $(UART_RTL) \
+	--top-module uart_top \
+	-Irtl \
+	--no-timing \
+	-Wno-fatal \
+	--build
 
 clean:
 	rm -rf $(BUILD) $(TARGET)

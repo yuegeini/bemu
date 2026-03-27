@@ -1,8 +1,9 @@
-#ifndef UART_RTL_H
-#define UART_RTL_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "transaction.h"
+void uart_rtl_handle(bus_txn_t *t);
 
-extern "C" void uart_rtl_handle(bus_txn_t *t);
-
+#ifdef __cplusplus
+}
 #endif
